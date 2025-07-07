@@ -9,6 +9,7 @@ import { RpcException } from '@nestjs/microservices';
 import { PrismaClient } from '@prisma/client';
 import { CreateUserDto, UpdateUserDto } from './dto';
 import { PaginationDto } from '../../common/dto/pagination.dto';
+import { UserRoles } from './enums/user-roles';
 import * as argon from 'argon2';
 
 @Injectable()
@@ -32,7 +33,7 @@ export class UsersService extends PrismaClient implements OnModuleInit {
           name: 'Admin User',
           email: 'admin@test.com',
           password: await argon.hash('Admin123'),
-          role: ['admin']
+          role: UserRoles.admin
         }
       });
 

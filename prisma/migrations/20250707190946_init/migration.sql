@@ -7,7 +7,7 @@ CREATE TABLE "users" (
     "name" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "password" TEXT NOT NULL,
-    "role" "Role"[] DEFAULT ARRAY['user']::"Role"[],
+    "role" "Role" NOT NULL DEFAULT 'user',
     "isActive" BOOLEAN NOT NULL DEFAULT true,
     "deleted" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
