@@ -6,10 +6,12 @@ import {
 } from '@nestjs/common';
 
 import { RpcException } from '@nestjs/microservices';
+import { JwtService } from '@nestjs/jwt';
 import { PrismaClient } from '@prisma/client';
 import { CreateUserDto } from '../users/dto';
 import { UsersService } from '../users/users.service';
 import { LoginUserDto } from './dto';
+import { JwtPayload } from './interfaces';
 import * as argon from 'argon2';
 
 @Injectable()
@@ -18,7 +20,8 @@ export class AuthService extends PrismaClient implements OnModuleInit {
   private readonly logger = new Logger('AuthService');
 
   constructor(
-    private readonly usersService: UsersService
+    private readonly usersService: UsersService,
+    private jwtService: JwtService,
   ) {
     super();
   }
@@ -28,13 +31,48 @@ export class AuthService extends PrismaClient implements OnModuleInit {
     this.logger.log('Database connected');
   }
 
+  async generateToken(payload: JwtPayload) {
+    return this.jwtService.sign(payload);
+  }
+
   async register(registerUserDto: CreateUserDto) {
 
-    const user = await this.usersService.create(registerUserDto);
+    const { email } = registerUserDto;
 
-    return {
-      user,
-      token: 'asdasdasdm21312k312kmASD123123123'
+    try {
+
+      const user = await this.usersService.findOneByEmail(email);
+
+      if (user) {
+        throw new RpcException({
+          status: HttpStatus.BAD_REQUEST,
+          message: 'User already exists'
+        });
+      }
+
+      const newUser = await this.usersService.create(registerUserDto);
+
+      // Excluir el password
+      const { password: __, ...rest } = newUser;
+
+      // Payload
+      const payload: JwtPayload = {
+        id: rest.id,
+        name: rest.name,
+        email: rest.email,
+        role: rest.role,
+      }
+
+      return {
+        user: rest,
+        token: await this.generateToken(payload)
+      }
+
+    } catch (error) {
+      throw new RpcException({
+        status: HttpStatus.BAD_REQUEST,
+        message: error.message,
+      });
     }
 
   }
@@ -61,11 +99,21 @@ export class AuthService extends PrismaClient implements OnModuleInit {
       });
     }
 
-    return {
-      user,
-      token: 'asdkasdkasndjasdkasndjasd!@#1ksadmaskd'
+    // Excluir el password
+    const { password: __, ...rest } = user;
+
+    // Payload
+    const payload: JwtPayload = {
+      id: rest.id,
+      name: rest.name,
+      email: rest.email,
+      role: rest.role,
     }
 
+    return {
+      user: rest,
+      token: await this.generateToken(payload)
+    }
 
   }
 

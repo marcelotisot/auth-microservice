@@ -7,6 +7,7 @@ interface EnvVars {
   POSTGRES_DB: string;
   DATABASE_URL: string;
   NATS_SERVERS: string[];
+  JWT_SECRET: string;
 }
 
 // Validar el esquema
@@ -15,6 +16,7 @@ const envsSchema = joi.object({
   POSTGRES_PASSWORD: joi.string().required(),
   POSTGRES_DB: joi.string().required(),
   DATABASE_URL: joi.string().required(),
+  JWT_SECRET: joi.string().required(),
   NATS_SERVERS: joi.array().items(joi.string()).required(),
 })
 .unknown(true);
@@ -38,4 +40,5 @@ export const envs = {
   pgPass: envVars.POSTGRES_PASSWORD,
   dbUrl: envVars.DATABASE_URL,
   natsServers: envVars.NATS_SERVERS,
+  jwtSecret: envVars.JWT_SECRET,
 }
