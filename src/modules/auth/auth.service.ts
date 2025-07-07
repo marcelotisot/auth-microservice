@@ -12,6 +12,7 @@ import { CreateUserDto } from '../users/dto';
 import { UsersService } from '../users/users.service';
 import { LoginUserDto } from './dto';
 import { JwtPayload } from './interfaces';
+import { envs } from '../../config';
 import * as argon from 'argon2';
 
 @Injectable()
@@ -115,6 +116,34 @@ export class AuthService extends PrismaClient implements OnModuleInit {
       token: await this.generateToken(payload)
     }
 
+  }
+
+  async verifyToken(token: string) {
+
+    try {
+
+      const { sub, iat, exp, ...user } = this.jwtService.verify(token, {
+        secret: envs.jwtSecret,
+      });
+
+      return {
+        user: user,
+
+        // Volver a generar el token
+        token: await this.generateToken(user)
+      }
+      
+    } catch (error) {
+
+      this.logger.error(error);
+
+      throw new RpcException({
+        status: HttpStatus.UNAUTHORIZED,
+        message: 'Invalid token'
+      });
+
+    }
+    
   }
 
 }
