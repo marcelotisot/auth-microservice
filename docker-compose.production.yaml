@@ -1,0 +1,25 @@
+services:
+  auth-microservice:
+    depends_on:
+      - database
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    image: auth-microservice-docker 
+    container_name: auth-microservice
+    restart: always # reiniciar el contenedor si se detiene
+    ports:
+      - "${PORT}:${PORT}"
+    env_file:
+      - .env.production
+
+  database:
+    image: postgres:15
+    container_name: authdb
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./postgres:/var/lib/postgresql/data
